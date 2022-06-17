@@ -69,15 +69,4 @@ fun main(args: Array<String>) {
 val bufferedReader = BufferedReader(InputStreamReader(System.`in`))
 fun readLine(): String = bufferedReader.readLine()!!
 fun readInt(): Int = readLine().toInt()
-fun readLong(): Long = readLine().toLong()
-fun readLongs(): List<Long> = readLine().split(" ").map { it.toLong() }
 fun readInts(): List<Int> = readLine().split(" ").map { it.toInt() }
-fun readBoolean(): Boolean = readLine().toInt() == 1
-fun readBooleans(): List<Boolean> = readLine().split(" ").map { it.toInt() == 1 }
-fun booleanToInt(x: Boolean): Int = if (x) 1 else 0
-fun intToBoolean(x: Int): Boolean = x == 1
-fun readDouble(): Double = readLine().toDouble()
-fun readDoubles(): List<Double> = readLine().split(" ").map { it.toDouble() }
-inline operator fun <T> T.invoke(dummy: () -> Unit): T {
-    dummy(); return this
-}
