@@ -1,79 +1,69 @@
 import org.jsoup.Jsoup
 import java.io.BufferedReader
+import java.io.File
+import java.io.InputStream
 import java.io.InputStreamReader
 
 fun main(args: Array<String>) {
-    val l = listOf(
-        Triple(1, "2-sat", "2-sat"),
-        Triple(2, "meet-in-the-middle", "meet-in-the-middle"),
-        Triple(3, "binary search", "binary%20search"),
-        Triple(4, "bitmasks", "bitmasks"),
-        Triple(5, "fft", "fft"),
-        Triple(6, "geometry", "geometry"),
-        Triple(7, "graphs", "graphs"),
-        Triple(8, "two pointers", "two%20pointers"),
-        Triple(9, "trees", "trees"),
-        Triple(10, "dp", "dp"),
-        Triple(11, "greedy", "greedy"),
-        Triple(12, "games", "games"),
-        Triple(13, "interactive", "interactive"),
-        Triple(14, "chinese remainder theorem", "chinese%20remainder%20theorem"),
-        Triple(15, "combinatorics", "combinatorics"),
-        Triple(16, "combinatorics", "combinatorics"),
-        Triple(17, "constructive algorithms", "constructive%20algorithms"),
-        Triple(18, "shortest paths", "shortest%20paths"),
-        Triple(19, "math", "math"),
-        Triple(20, "matrices", "matrices"),
-        Triple(21, "graph matchings", "graph%20matchings"),
-        Triple(22, "brute", "graph%20matchings"),
-        Triple(23, "dfs and similar", "dfs%20and%20similar"),
-        Triple(24, "flows", "flows"),
-        Triple(25, "expression parsing", "expression%20parsing"),
-        Triple(26, "divide and conquer", "divide%20and%20conquer"),
-        Triple(27, "schedules", "schedules"),
-        Triple(28, "implementation", "implementation"),
-        Triple(29, "dsu", "dsu"),
-        Triple(30, "sortings", "sortings"),
-        Triple(31, "strings", "strings"),
-        Triple(32, "string suffix structures", "string%20suffix%20structures"),
-        Triple(33, "data structures", "data%20structures"),
-        Triple(34, "probabilities", "probabilities"),
-        Triple(35, "number theory", "number%20theory"),
-        Triple(36, "ternary search", "ternary%20search"),
-        Triple(37, "hashing", "hashing")
-    )
-    for (nums in l) println("${nums.first}. ${nums.second}")
-    println("Number of theme: ")
-    val num = readInt()
-    val theme = l[num - 1].third
-    println("hard limites(ex. 800 3500) or only one num")
-    val lvl = readInts()
-    println("1. in ascending order\n2. in descending order")
-    val choose = readInt()
-    println("quanity of tasks (0 if all):")
-    var sz = readInt()
-    var s: String
-    if (choose == 2) s = "BY_RATING_DESC" else s = "BY_RATING_ASC"
-    val URL = "https://codeforces.com/problemset?order=$s&tags=$theme%2C${lvl[0]}-${lvl.last()}"
-    val doc = Jsoup.connect(URL).get()
-    val metaElements = doc.select("td.id").text().split(" ").toMutableList()
-    val Elements = doc.select("span.ProblemRating").text().split(" ").toList()
-    if (sz == 0) sz = Elements.size
-    println("Name Url lvl:")
-    for (i in 0 until sz) {
-        var s = "codeforces.com/contest/"
-        for (el in metaElements[i]) {
-            if (!el.isDigit()) s += "/problem/"
-            s += el
-        }
-        metaElements[i] = s
-        val taskUrl = "https://${metaElements[i]}"
-        val taskDoc = Jsoup.connect(taskUrl).get()
-        val task = taskDoc.select("div.title").first()?.text()
-        println("${task} ${metaElements[i]} ${Elements[i]}")
+    val themesList = mutableListOf<Triple<String, String, String>>()
+    val readThemes: InputStream = File("themes.txt").inputStream()
+    val lineList = mutableListOf<String>()
+    readThemes.bufferedReader().forEachLine {lineList.add(it)}
+    for (item in lineList) {
+        val theme = item.replace("\"", "")
+        val themeList = theme.split(", ")
+        themesList.add(Triple(themeList[0], themeList[1], themeList[2]))
     }
-    println("Exit?")
-    val exit = readLine()
+    for (nums in themesList) println("${nums.first}. ${nums.second}")
+    println("Numbers of themes (with spase): ")
+    val chooseThemes = readInts()
+    var themeUrl = ""
+    for (chooseTheme in chooseThemes) themeUrl += themesList[chooseTheme - 1].third + ","
+    println("Hard limites(ex. 800 3500) or only one num")
+    val HardOfProblems = readInts().toMutableList()
+    if (HardOfProblems.size == 1) HardOfProblems.add(3500)
+    println("1. in ascending order\n2. in descending order")
+    val chooseOrder = readInt()
+    println("quanity of tasks (0 if all):")
+    var problemsQuanity = readInt()
+    val s: String
+    if (chooseOrder == 2) s = "BY_RATING_DESC" else s = "BY_RATING_ASC"
+    val problemsUrl = "https://codeforces.com/problemset?order=$s&tags=$themeUrl%2C${HardOfProblems.first()}-${HardOfProblems.last()}"
+    val cfHtml = Jsoup.connect(problemsUrl).get()
+    val nameElements = cfHtml.select("td.id").text().split(" ").toMutableList()
+    val rateElements = cfHtml.select("span.ProblemRating").text().split(" ").toList()
+    val problemsFound = rateElements.size
+    if (problemsQuanity == 0) problemsQuanity = problemsFound
+    else {
+        if (problemsFound < problemsQuanity) {
+            if (problemsFound <= 1) println("We just find $problemsFound page")
+            else println("We just find $problemsFound pages")
+        }
+        problemsQuanity = minOf(problemsFound, problemsQuanity)
+    }
+    println("Name Url lvl:")
+    for (i in 0 until problemsQuanity) {
+        var problemUrl = "codeforces.com/contest/"
+        for (el in nameElements[i]) {
+            if (!el.isDigit()) problemUrl += "/problem/"
+            problemUrl += el
+        }
+        nameElements[i] = problemUrl
+        try {
+            val taskUrl = "https://${nameElements[i]}"
+            val problemHtml = Jsoup.connect(taskUrl).get()
+        }
+        catch (isProblem: org.jsoup.HttpStatusException) {
+            println("Tasks aren`t find. You can try change limits...")
+            break
+        }
+        val taskUrl = "https://${nameElements[i]}"
+        val problemHtml = Jsoup.connect(taskUrl).get()
+        val problemName = problemHtml.select("div.title").first()?.text()
+        println("${problemName} ${nameElements[i]} ${rateElements[i]}")
+    }
+    println("If you want to exit print something")
+    val isExit = readLine()
 }
 
 val bufferedReader = BufferedReader(InputStreamReader(System.`in`))
