@@ -6,7 +6,7 @@ import java.io.InputStreamReader
 
 fun main(args: Array<String>) {
     val themesList = mutableListOf<Triple<String, String, String>>()
-    val readThemes: InputStream = File("themes.txt").inputStream()
+    val readThemes: InputStream = File("resources/themes.txt").inputStream()
     val lineList = mutableListOf<String>()
     readThemes.bufferedReader().forEachLine {lineList.add(it)}
     for (item in lineList) {
